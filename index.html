@@ -74,18 +74,14 @@
             overflow: visible;
             padding: 6px;
         }
-        .sticker-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
         .card-title {
             font-size: 14px;
             font-weight: 600;
             color: #2c3e50;
             margin-top: 8px;
         }
-        /* Modal Style (Bottom Sheet für Smartphones) */
+
+        /* Modal (Bottom Sheet) */
         .modal {
             display: none;
             position: fixed;
@@ -138,17 +134,12 @@
             align-items: center;
             justify-content: center;
         }
-        .modal-body .modal-sticker-container {
+        .modal-sticker-container {
             height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 16px;
-        }
-        .modal-body img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
         }
         .section-title {
             font-size: 12px;
@@ -193,20 +184,17 @@
         <p>Wähle ein Getränk für das Rezept</p>
     </header>
 
-    <div class="grid-container" id="menuGrid">
-        </div>
+    <div class="grid-container" id="menuGrid"></div>
 
-    <div class="modal" id="recipeModal" onclick="closeModal(event)">
+    <div class="modal" id="recipeModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="modal-title" id="modalTitle">Cocktail</div>
-                <button class="close-btn" onclick="toggleModal(false)">&times;</button>
+                <button class="close-btn" onclick="toggleModal(false)" aria-label="Schließen">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="modal-sticker-container">
-                    <img id="modalImage" src="" alt="">
-                </div>
-                
+                <div class="modal-sticker-container" id="modalIcon"></div>
+
                 <div class="section-title">Zutaten</div>
                 <ul class="ingredients-list" id="modalIngredients"></ul>
 
@@ -217,11 +205,10 @@
     </div>
 
     <script>
-        // Bilddaten aus deiner Vorlage als saubere Bild-URLs (Symbole) verpackt
-        const drinks = {
+        const drinks = Object.freeze({
             cola_bucket: {
                 title: "Cola Bucket",
-                icon: "🥃", // Falls deine eigenen Bilder lokal liegen, hier einfach "images/cola.png" eintragen
+                icon: "🥃",
                 ingredients: ["Whiskey", "1 Zitronenscheibe", "Cola", "Eiswürfel"],
                 instructions: "Das Glas komplett mit Eiswürfeln füllen. Einen Schuss Whiskey dazugeben, eine Zitronenscheibe hineinlegen und mit Cola auffüllen."
             },
@@ -273,7 +260,7 @@
                 ingredients: ["Whiskey", "Gekühlter schwarzer Kaffee", "Eiswürfel"],
                 instructions: "Eiswürfel ins Glas geben, einen guten Schuss Whiskey hinzufügen und mit kaltem, kräftigem Kaffee auffüllen."
             }
-        };
+        });
 
         // Menü generieren
         const grid = document.getElementById('menuGrid');
@@ -282,10 +269,9 @@
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => openRecipe(key);
-            
             card.innerHTML = `
                 <div class="sticker-container">
-                    <span style="font-size: 64px;">${drink.icon}</span>
+                    <span style="font-size: 64px;" role="img" aria-label="${drink.title}">${drink.icon}</span>
                 </div>
                 <div class="card-title">${drink.title}</div>
             `;
@@ -294,24 +280,22 @@
 
         function openRecipe(key) {
             const drink = drinks[key];
-            document.getElementById('modalTitle').innerText = drink.title;
-            document.getElementById('modalInstructions').innerText = drink.instructions;
-            
+
+            document.getElementById('modalTitle').textContent = drink.title;
+            document.getElementById('modalInstructions').textContent = drink.instructions;
+            document.getElementById('modalIcon').innerHTML =
+                `<span style="font-size: 80px;" role="img" aria-label="${drink.title}">${drink.icon}</span>`;
+
             const ingList = document.getElementById('modalIngredients');
             ingList.innerHTML = '';
             drink.ingredients.forEach(ing => {
                 const li = document.createElement('li');
-                li.innerText = ing;
+                li.textContent = ing;
                 ingList.appendChild(li);
             });
 
-            // Setzt das Icon groß ins Popup
-            const modalImg = document.getElementById('modalImage');
-            modalImg.style.display = 'none'; // Versteckt das Standard-Bild-Tag
-            
-            // Erstellt temporär ein großes Icon im Popup
-            let iconTarget = document.querySelector('.modal-sticker-container');
-            iconTarget.innerHTML = `<span style="font-size: 80px;">${drink.icon}</span>`;
+            // Scroll-Position zurücksetzen
+            document.querySelector('.modal-content').scrollTop = 0;
 
             toggleModal(true);
         }
